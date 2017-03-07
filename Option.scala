@@ -23,3 +23,15 @@ sealed trait Option[+A] {
 
 case class Some[+A](get: A) extends Option[A]
 object None extends Option[Nothing]
+
+object Option {
+  def sequence[A](a: List[Option[A]]): Option[List[A]] = a match {
+    case Nil => Some(Nil)
+    case h :: t => h flatMap (hh => sequence(t) map (hh :: _))
+  }
+
+  def traverse[A, B](a: List[A])(f: A => Option[B]): Option[List[B]] = a match {
+    case Nil => Some(Nil)
+    case h :: t => f(h) flatMap (hh => traverse(t)(f) map (hh :: _))
+  }
+}
