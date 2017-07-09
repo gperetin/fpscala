@@ -28,9 +28,9 @@ sealed trait Stream[+A] {
 
   // takeWhile using foldRight
   def takeWhile2(p: A => Boolean): Stream[A] =
-    foldRight(empty[A])((h, t) =>
-        if (f(h)) cons(h, t)
-        else empty)
+    foldRight(Stream.empty[A])((h, t) =>
+        if (p(h)) Stream.cons(h, t)
+        else Stream.empty)
 
   def foldRight[B](z: => B)(f: (A, => B) => B): B = this match {
     case Cons(h, t) => f(h(), t().foldRight(z)(f))
@@ -40,6 +40,21 @@ sealed trait Stream[+A] {
   // Check that all elements in the stream match a given predicate
   // Terminate early for first false element
   def forAll(p: A => Boolean): Boolean = foldRight(true)((a, b) => p(a) && b)
+
+  def map[B](f: A => B): Stream[B] =
+    foldRight(Stream.empty[B])((h, t) => Stream.cons(f(h), t))
+
+  def filter(f: A => Boolean): Stream[A] =
+    foldRight(Stream.empty[A])((h, t) =>
+        if (f(h)) Stream.cons(h, t)
+        else t)
+
+  def append[B>:A](b: => Stream[B]): Stream[B] =
+    foldRight(b)((h, t) => Stream.cons(h, t))
+
+
+  def flatMap[B](f: A => Stream[B]): Stream[B] =
+    foldRight(Stream.empty[B])((h, t) => f(h) append t)
 }
 
 case object Empty extends Stream[Nothing]
