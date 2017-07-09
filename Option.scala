@@ -19,13 +19,14 @@ sealed trait Option[+A] {
 
   def filter(f: A => Boolean): Option[A] =
     flatMap(a => if (f(a)) Some(a) else None)
+
 }
 
 case class Some[+A](get: A) extends Option[A]
 object None extends Option[Nothing]
 
 object Option {
-  def sequence[A](a: List[Option[A]]): Option[List[A]] = a match {
+  def sequence[A](s: List[Option[A]]): Option[List[A]] = s match {
     case Nil => Some(Nil)
     case h :: t => h flatMap (hh => sequence(t) map (hh :: _))
   }
@@ -34,4 +35,6 @@ object Option {
     case Nil => Some(Nil)
     case h :: t => f(h) flatMap (hh => traverse(t)(f) map (hh :: _))
   }
+  def map2[A, B, C](a: Option[A], b:Option[B])(f: (A, B) => C): Option[C] =
+    a flatMap (aa => b map (bb => f(aa, bb)))
 }
