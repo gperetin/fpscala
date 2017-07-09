@@ -20,10 +20,26 @@ sealed trait Stream[+A] {
     case Empty => List.empty
   }
 
+  // Return all starting elements that match the given predicate
   def takeWhile(p: A => Boolean): Stream[A] = this match {
     case Cons(h, t) if p(h()) => Stream.cons(h(), t().takeWhile(p))
     case _ => Stream.empty
   }
+
+  // takeWhile using foldRight
+  def takeWhile2(p: A => Boolean): Stream[A] =
+    foldRight(empty[A])((h, t) =>
+        if (f(h)) cons(h, t)
+        else empty)
+
+  def foldRight[B](z: => B)(f: (A, => B) => B): B = this match {
+    case Cons(h, t) => f(h(), t().foldRight(z)(f))
+    case _ => z
+  }
+
+  // Check that all elements in the stream match a given predicate
+  // Terminate early for first false element
+  def forAll(p: A => Boolean): Boolean = foldRight(true)((a, b) => p(a) && b)
 }
 
 case object Empty extends Stream[Nothing]
